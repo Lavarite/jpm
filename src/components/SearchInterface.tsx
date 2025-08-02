@@ -378,8 +378,8 @@ const SearchInterface = () => {
                          <ul className="space-y-2">
                            {result.actions.map((action, i) => (
                              <li key={i} className={`text-sm flex items-start gap-2 ${darkMode ? 'text-white/90' : 'text-foreground'}`}>
-                               <span className="text-primary mt-1">•</span>
-                               <span>{action}</span>
+                               <span className={`text-xs mt-0.5 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>•</span>
+                               <span>{action.charAt(0).toUpperCase() + action.slice(1)}</span>
                              </li>
                            ))}
                          </ul>
