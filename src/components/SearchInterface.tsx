@@ -12,10 +12,20 @@ import { model, API_BASE_URL } from '@/lib/firebase';
 interface SearchResult {
   type: "conversation" | "product";
   id: string;
-  date: string | null;
-  advisor: { id: string | null; name: string | null };
-  client: { id: string | null; name: string | null };
-  product: { id: string | null; name: string | null; type: string | null };
+  date: string;
+  advisor: { 
+    id: string | null; 
+    name: string | null; 
+  };
+  client: { 
+    id: string | null; 
+    name: string | null; 
+  };
+  product: { 
+    id: string | null; 
+    name: string | null; 
+    type: string | null; 
+  };
   summary: string;
   topics: string[];
   actions: string[];
@@ -259,13 +269,19 @@ const SearchInterface = () => {
                           <Badge variant={result.type === 'conversation' ? 'default' : 'secondary'}>
                             {result.type}
                           </Badge>
-                          {result.date && (
-                            <span className={`text-sm ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
-                              {result.date}
-                            </span>
-                          )}
+                          <span className={`text-sm ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
+                            {new Date(result.date).toLocaleDateString('en-US', { 
+                              year: 'numeric', 
+                              month: 'short', 
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
                         </div>
-                        <CardTitle className={`text-lg ${darkMode ? 'text-white' : ''}`}>{result.id}</CardTitle>
+                        <CardTitle className={`text-lg ${darkMode ? 'text-white' : ''}`}>
+                          {result.type === 'conversation' ? `Conversation ${result.id}` : `Product ${result.id}`}
+                        </CardTitle>
                     </div>
                   </div>
                   
