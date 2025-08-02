@@ -76,7 +76,11 @@ const SearchInterface = () => {
         
         // Try to parse complete JSON
         try {
-          const cleaned = streamingSummary.trim();
+          // Strip markdown code fences if present
+          const cleaned = streamingSummary
+            .replace(/```json|```/g, "")
+            .trim();
+          
           if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
             const parsed = JSON.parse(cleaned);
             setParsedResults(parsed);
@@ -84,9 +88,11 @@ const SearchInterface = () => {
             setStreamProgress(100);
           }
         } catch (parseErr) {
-          // Only set parse error if streaming has finished (detected by presence of complete JSON structure)
-          const cleaned = streamingSummary.trim();
-          if (cleaned.includes('}]') && !loading) {
+          // Only set parse error if streaming has finished
+          const cleaned = streamingSummary
+            .replace(/```json|```/g, "")
+            .trim();
+          if ((cleaned.includes('}]') || cleaned.endsWith(']')) && !loading) {
             setParseError((parseErr as Error).message);
           }
         }
