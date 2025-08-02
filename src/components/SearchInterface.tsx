@@ -69,9 +69,47 @@ const SearchInterface = () => {
     setExpandedRawText(newExpanded);
   };
 
-  const handleNameClick = (name: string) => {
+  const handleNameClick = async (name: string) => {
     setQuery(name);
-    handleSubmit();
+    
+    // Reset state
+    setParsedResults([]);
+    setParseError(null);
+    
+    await handleSearch(
+      name,
+      abortRef,
+      setLoading,
+      setError,
+      (streamingSummary) => {
+        setSummary(streamingSummary);
+        
+        // Try to parse complete JSON
+        try {
+          // Strip markdown code fences if present
+          const cleaned = streamingSummary
+            .replace(/```json|```/g, "")
+            .trim();
+          
+          if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
+            const parsed = JSON.parse(cleaned);
+            setParsedResults(parsed);
+            setParseError(null);
+          }
+        } catch (parseErr) {
+          // Only set parse error if streaming has finished
+          const cleaned = streamingSummary
+            .replace(/```json|```/g, "")
+            .trim();
+          if ((cleaned.includes('}]') || cleaned.endsWith(']')) && !loading) {
+            setParseError((parseErr as Error).message);
+          }
+        }
+      },
+      setResults,
+      model,
+      API_BASE_URL
+    );
   };
 
   const exportResults = () => {
@@ -86,7 +124,7 @@ const SearchInterface = () => {
     linkElement.click();
   };
 
-  const filteredResults = parsedResults.filter(result => {
+  const filteredResults = (parsedResults || []).filter(result => {
     if (filter === "all") return true;
     return result.type === filter;
   });
@@ -175,14 +213,28 @@ const SearchInterface = () => {
               </div>
               <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-foreground'}`}>JP Morgan Research</h1>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setDarkMode(!darkMode)}
-              className={`${darkMode ? 'text-white hover:bg-white/10' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </Button>
+            <div className="flex items-center gap-2">
+              {/* Export Button */}
+              {parsedResults.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportResults}
+                  className={`${darkMode ? 'border-white/20 text-white hover:bg-white/10 hover:text-white' : 'hover:bg-accent'}`}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDarkMode(!darkMode)}
+                className={`${darkMode ? 'text-white hover:bg-white/10' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
+            </div>
           </div>
           
           {/* Search Box */}
@@ -312,19 +364,6 @@ const SearchInterface = () => {
                 Search Results ({sortedResults.length}{sortedResults.length !== parsedResults.length && ` of ${parsedResults.length}`})
               </h2>
               <div className="flex items-center gap-4">
-                {/* Export Button */}
-                {parsedResults.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={exportResults}
-                    className={`${darkMode ? 'border-white/20 text-white hover:bg-white/10' : ''}`}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Export
-                  </Button>
-                )}
-                
                 {/* Filter */}
                 <div className="flex items-center gap-2">
                   <Filter className={`w-4 h-4 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`} />
@@ -537,35 +576,35 @@ const SearchInterface = () => {
                      </div>
                    )}
                    
-                     {/* Topics */}
-                     {result.topics.length > 0 && (
-                      <div>
-                        <h4 className={`text-sm font-medium mb-2 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
-                          Topics
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {result.topics.map((topic, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {topic}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  
-                     {/* Actions */}
-                     {result.actions.length > 0 && (
+                      {/* Topics */}
+                      {result.topics && result.topics.length > 0 && (
+                       <div>
+                         <h4 className={`text-sm font-medium mb-2 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
+                           Topics
+                         </h4>
+                         <div className="flex flex-wrap gap-2">
+                           {result.topics.map((topic, i) => (
+                             <Badge key={i} variant="secondary" className="text-xs">
+                               {topic}
+                             </Badge>
+                           ))}
+                         </div>
+                       </div>
+                     )}
+                   
+                      {/* Actions */}
+                      {result.actions && result.actions.length > 0 && (
                        <div>
                          <h4 className={`text-sm font-medium mb-2 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
                            Actions
                          </h4>
                          <ul className="space-y-2">
-                           {result.actions.map((action, i) => (
-                             <li key={i} className={`text-sm flex items-start gap-2 ${darkMode ? 'text-white/90' : 'text-foreground'}`}>
-                               <span className={`text-xs mt-0.5 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>•</span>
-                               <span>{action.charAt(0).toUpperCase() + action.slice(1)}</span>
-                             </li>
-                           ))}
+                            {result.actions.map((action, i) => (
+                              <li key={i} className={`text-sm flex items-start gap-2 ${darkMode ? 'text-white/90' : 'text-foreground'}`}>
+                                <span className={`text-xs mt-0.5 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>•</span>
+                                <span>{action && typeof action === 'string' ? action.charAt(0).toUpperCase() + action.slice(1) : action}</span>
+                              </li>
+                            ))}
                          </ul>
                        </div>
                      )}
