@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Search, AlertCircle } from 'lucide-react';
 import { handleSearch } from '@/helpers/handleSearch';
+import { model, API_BASE_URL } from '@/lib/firebase';
 
 interface SearchResult {
   type: "conversation" | "product";
@@ -26,8 +27,6 @@ const SearchInterface = () => {
   const [results, setResults] = useState("");
   const [parsedResults, setParsedResults] = useState<SearchResult[]>([]);
   const abortRef = useRef<AbortController | null>(null);
-
-  const API_BASE_URL = "https://api.jpm.vasylevskyi.net";
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -54,7 +53,7 @@ const SearchInterface = () => {
         }
       },
       setResults,
-      null, // model will need to be provided
+      model,
       API_BASE_URL
     );
   };
