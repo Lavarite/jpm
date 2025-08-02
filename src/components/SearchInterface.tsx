@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Search, AlertCircle, Moon, Sun, ChevronDown, ChevronUp, Filter, FileText } from 'lucide-react';
+import { Loader2, Search, AlertCircle, Moon, Sun, ChevronDown, ChevronUp, Filter, FileText, ArrowUpDown } from 'lucide-react';
 import { handleSearch } from '@/helpers/handleSearch';
 import { model, API_BASE_URL } from '@/lib/firebase';
 
@@ -44,6 +44,8 @@ const SearchInterface = () => {
   const [expandedSummaries, setExpandedSummaries] = useState<Set<string>>(new Set());
   const [expandedRawText, setExpandedRawText] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<"all" | "conversation" | "product">("all");
+  const [sortBy, setSortBy] = useState<"date" | "type" | "advisor" | "client">("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const abortRef = useRef<AbortController | null>(null);
 
   const toggleSummaryExpansion = (id: string) => {
@@ -69,6 +71,27 @@ const SearchInterface = () => {
   const filteredResults = parsedResults.filter(result => {
     if (filter === "all") return true;
     return result.type === filter;
+  });
+
+  const sortedResults = [...filteredResults].sort((a, b) => {
+    let comparison = 0;
+    
+    switch (sortBy) {
+      case "date":
+        comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+        break;
+      case "type":
+        comparison = a.type.localeCompare(b.type);
+        break;
+      case "advisor":
+        comparison = (a.advisor.name || "").localeCompare(b.advisor.name || "");
+        break;
+      case "client":
+        comparison = (a.client.name || "").localeCompare(b.client.name || "");
+        break;
+    }
+    
+    return sortOrder === "asc" ? comparison : -comparison;
   });
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -265,30 +288,59 @@ const SearchInterface = () => {
         {/* Results */}
         {parsedResults.length > 0 && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-foreground'}`}>
-                Search Results ({filteredResults.length}{filteredResults.length !== parsedResults.length && ` of ${parsedResults.length}`})
+                Search Results ({sortedResults.length}{sortedResults.length !== parsedResults.length && ` of ${parsedResults.length}`})
               </h2>
-              <div className="flex items-center gap-2">
-                <Filter className={`w-4 h-4 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`} />
-                <Select value={filter} onValueChange={(value: "all" | "conversation" | "product") => setFilter(value)}>
-                  <SelectTrigger className={`w-40 ${darkMode ? 'bg-white/10 border-white/20 text-white' : ''}`}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className={`${darkMode ? 'bg-gray-800 border-white/20' : ''}`}>
-                    <SelectItem value="all">All Results</SelectItem>
-                    <SelectItem value="conversation">Conversations</SelectItem>
-                    <SelectItem value="product">Products</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center gap-4">
+                {/* Filter */}
+                <div className="flex items-center gap-2">
+                  <Filter className={`w-4 h-4 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`} />
+                  <Select value={filter} onValueChange={(value: "all" | "conversation" | "product") => setFilter(value)}>
+                    <SelectTrigger className={`w-40 ${darkMode ? 'bg-white/10 border-white/20 text-white' : ''}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className={`${darkMode ? 'bg-gray-800 border-white/20 text-white' : ''}`}>
+                      <SelectItem value="all" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>All Results</SelectItem>
+                      <SelectItem value="conversation" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Conversations</SelectItem>
+                      <SelectItem value="product" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Products</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Sort */}
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className={`w-4 h-4 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`} />
+                  <Select value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
+                    const [sort, order] = value.split('-') as [typeof sortBy, typeof sortOrder];
+                    setSortBy(sort);
+                    setSortOrder(order);
+                  }}>
+                    <SelectTrigger className={`w-40 ${darkMode ? 'bg-white/10 border-white/20 text-white' : ''}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className={`${darkMode ? 'bg-gray-800 border-white/20 text-white' : ''}`}>
+                      <SelectItem value="date-desc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Newest First</SelectItem>
+                      <SelectItem value="date-asc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Oldest First</SelectItem>
+                      <SelectItem value="type-asc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Type A-Z</SelectItem>
+                      <SelectItem value="type-desc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Type Z-A</SelectItem>
+                      <SelectItem value="advisor-asc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Advisor A-Z</SelectItem>
+                      <SelectItem value="advisor-desc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Advisor Z-A</SelectItem>
+                      <SelectItem value="client-asc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Client A-Z</SelectItem>
+                      <SelectItem value="client-desc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Client Z-A</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
             
-            {filteredResults.map((result, index) => {
+            {sortedResults.map((result, index) => {
               const isExpanded = expandedSummaries.has(result.id || `result-${index}`);
               const isRawTextExpanded = expandedRawText.has(result.id || `result-${index}`);
-              const summaryLines = result.summary.split('\n').length;
-              const isLongSummary = summaryLines > 3 || result.summary.length > 300;
+              
+              // Sanitize summary text for length checking
+              const sanitizedSummary = result.summary.replace(/\s+/g, ' ').trim();
+              const isLongSummary = sanitizedSummary.length > 300;
               
               return (
                 <Card key={result.id || index} className={`shadow-elegant hover:shadow-glow transition-shadow ${
@@ -298,7 +350,8 @@ const SearchInterface = () => {
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <Badge variant={result.type === 'conversation' ? 'default' : 'destructive'}>
+                            <Badge variant={result.type === 'conversation' ? 'default' : 'destructive'} 
+                              className={`${darkMode ? 'border border-white/30' : ''}`}>
                               {result.type.charAt(0).toUpperCase() + result.type.slice(1)}
                             </Badge>
                           <span className={`text-sm ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
@@ -311,9 +364,9 @@ const SearchInterface = () => {
                             })}
                           </span>
                         </div>
-                         <CardTitle className={`text-lg ${darkMode ? 'text-white' : ''}`}>
-                           {result.type === 'conversation' ? `Conversation` : `Product`} {result.id}
-                         </CardTitle>
+                          <CardTitle className={`text-lg ${darkMode ? 'text-white' : ''}`}>
+                            {result.type === 'conversation' ? 'Conversation' : 'Product'}
+                          </CardTitle>
                     </div>
                   </div>
                   
@@ -335,11 +388,11 @@ const SearchInterface = () => {
                       </div>
                     )}
 
-                    {/* Product */}
-                    {result.product.name && (
-                      <div className="text-sm">
-                        <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Product:</span>{' '}
-                        <span className="font-medium">{result.product.name}</span>
+                     {/* Product */}
+                     {result.product.name && (
+                       <div className="text-sm">
+                         <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Product:</span>{' '}
+                         <span className={`font-medium ${darkMode ? 'text-white' : 'text-foreground'}`}>{result.product.name}</span>
                         {result.product.type && (
                           <Badge variant="outline" className="ml-2 text-xs">
                             {result.product.type}
