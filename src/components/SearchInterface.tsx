@@ -409,17 +409,16 @@ const SearchInterface = () => {
               const isExpanded = expandedSummaries.has(result.id || `result-${index}`);
               const isRawTextExpanded = expandedRawText.has(result.id || `result-${index}`);
               
-              // Check if content overflows by using a temporary element
-              const tempDiv = document.createElement('div');
-              tempDiv.style.cssText = 'position: absolute; visibility: hidden; width: 600px; line-height: 1.625; font-size: 14px;';
-              tempDiv.textContent = result.summary;
-              document.body.appendChild(tempDiv);
-              const fullHeight = tempDiv.scrollHeight;
-              tempDiv.style.height = '5.625rem'; // line-clamp-5 height
-              const clampedHeight = tempDiv.offsetHeight;
-              document.body.removeChild(tempDiv);
+              // Use a ref to properly check if content overflows
+              const summaryRef = React.useRef<HTMLParagraphElement>(null);
+              const [isLongSummary, setIsLongSummary] = React.useState(false);
               
-              const isLongSummary = fullHeight > clampedHeight;
+              React.useEffect(() => {
+                if (summaryRef.current) {
+                  const element = summaryRef.current;
+                  setIsLongSummary(element.scrollHeight > element.clientHeight);
+                }
+              }, [result.summary]);
               
               return (
                 <Card key={result.id || index} className={`shadow-elegant hover:shadow-glow transition-shadow ${
@@ -522,9 +521,12 @@ const SearchInterface = () => {
                   <CardContent className="space-y-4">
                     {/* Summary with Line Clamping */}
                     <div>
-                      <p className={`leading-relaxed ${darkMode ? 'text-white' : 'text-foreground'} ${
-                        isLongSummary && !isExpanded ? 'line-clamp-5' : ''
-                      }`}>
+                      <p 
+                        ref={summaryRef}
+                        className={`leading-relaxed ${darkMode ? 'text-white' : 'text-foreground'} ${
+                          isLongSummary && !isExpanded ? 'line-clamp-5' : ''
+                        }`}
+                      >
                         {result.summary}
                       </p>
                       {isLongSummary && (
