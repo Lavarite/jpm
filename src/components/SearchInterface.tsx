@@ -300,10 +300,10 @@ const SearchInterface = () => {
                     <SelectTrigger className={`w-40 ${darkMode ? 'bg-white/10 border-white/20 text-white' : ''}`}>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className={`${darkMode ? 'bg-gray-800 border-white/20 text-white' : ''}`}>
-                      <SelectItem value="all" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>All Results</SelectItem>
-                      <SelectItem value="conversation" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Conversations</SelectItem>
-                      <SelectItem value="product" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Products</SelectItem>
+                    <SelectContent className={`${darkMode ? 'bg-primary border-white/20 text-white' : ''}`}>
+                      <SelectItem value="all" className={`${darkMode ? 'text-white hover:bg-white hover:text-primary focus:bg-white focus:text-primary' : ''}`}>All Results</SelectItem>
+                      <SelectItem value="conversation" className={`${darkMode ? 'text-white hover:bg-white hover:text-primary focus:bg-white focus:text-primary' : ''}`}>Conversations</SelectItem>
+                      <SelectItem value="product" className={`${darkMode ? 'text-white hover:bg-white hover:text-primary focus:bg-white focus:text-primary' : ''}`}>Products</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -319,15 +319,15 @@ const SearchInterface = () => {
                     <SelectTrigger className={`w-40 ${darkMode ? 'bg-white/10 border-white/20 text-white' : ''}`}>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className={`${darkMode ? 'bg-gray-800 border-white/20 text-white' : ''}`}>
-                      <SelectItem value="date-desc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Newest First</SelectItem>
-                      <SelectItem value="date-asc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Oldest First</SelectItem>
-                      <SelectItem value="type-asc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Type A-Z</SelectItem>
-                      <SelectItem value="type-desc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Type Z-A</SelectItem>
-                      <SelectItem value="advisor-asc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Advisor A-Z</SelectItem>
-                      <SelectItem value="advisor-desc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Advisor Z-A</SelectItem>
-                      <SelectItem value="client-asc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Client A-Z</SelectItem>
-                      <SelectItem value="client-desc" className={`${darkMode ? 'text-white hover:bg-white/10 focus:bg-white/10' : ''}`}>Client Z-A</SelectItem>
+                    <SelectContent className={`${darkMode ? 'bg-primary border-white/20 text-white' : ''}`}>
+                      <SelectItem value="date-desc" className={`${darkMode ? 'text-white hover:bg-white hover:text-primary focus:bg-white focus:text-primary' : ''}`}>Newest First</SelectItem>
+                      <SelectItem value="date-asc" className={`${darkMode ? 'text-white hover:bg-white hover:text-primary focus:bg-white focus:text-primary' : ''}`}>Oldest First</SelectItem>
+                      <SelectItem value="type-asc" className={`${darkMode ? 'text-white hover:bg-white hover:text-primary focus:bg-white focus:text-primary' : ''}`}>Type A-Z</SelectItem>
+                      <SelectItem value="type-desc" className={`${darkMode ? 'text-white hover:bg-white hover:text-primary focus:bg-white focus:text-primary' : ''}`}>Type Z-A</SelectItem>
+                      <SelectItem value="advisor-asc" className={`${darkMode ? 'text-white hover:bg-white hover:text-primary focus:bg-white focus:text-primary' : ''}`}>Advisor A-Z</SelectItem>
+                      <SelectItem value="advisor-desc" className={`${darkMode ? 'text-white hover:bg-white hover:text-primary focus:bg-white focus:text-primary' : ''}`}>Advisor Z-A</SelectItem>
+                      <SelectItem value="client-asc" className={`${darkMode ? 'text-white hover:bg-white hover:text-primary focus:bg-white focus:text-primary' : ''}`}>Client A-Z</SelectItem>
+                      <SelectItem value="client-desc" className={`${darkMode ? 'text-white hover:bg-white hover:text-primary focus:bg-white focus:text-primary' : ''}`}>Client Z-A</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -338,9 +338,17 @@ const SearchInterface = () => {
               const isExpanded = expandedSummaries.has(result.id || `result-${index}`);
               const isRawTextExpanded = expandedRawText.has(result.id || `result-${index}`);
               
-              // Sanitize summary text for length checking
-              const sanitizedSummary = result.summary.replace(/\s+/g, ' ').trim();
-              const isLongSummary = sanitizedSummary.length > 300;
+              // Check if content overflows by using a temporary element
+              const tempDiv = document.createElement('div');
+              tempDiv.style.cssText = 'position: absolute; visibility: hidden; width: 600px; line-height: 1.625; font-size: 14px;';
+              tempDiv.textContent = result.summary;
+              document.body.appendChild(tempDiv);
+              const fullHeight = tempDiv.scrollHeight;
+              tempDiv.style.height = '5.625rem'; // line-clamp-5 height
+              const clampedHeight = tempDiv.offsetHeight;
+              document.body.removeChild(tempDiv);
+              
+              const isLongSummary = fullHeight > clampedHeight;
               
               return (
                 <Card key={result.id || index} className={`shadow-elegant hover:shadow-glow transition-shadow ${
@@ -393,11 +401,11 @@ const SearchInterface = () => {
                        <div className="text-sm">
                          <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Product:</span>{' '}
                          <span className={`font-medium ${darkMode ? 'text-white' : 'text-foreground'}`}>{result.product.name}</span>
-                        {result.product.type && (
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            {result.product.type}
-                          </Badge>
-                        )}
+                         {result.product.type && (
+                           <Badge variant="outline" className={`ml-2 text-xs ${darkMode ? 'text-white' : ''}`}>
+                             {result.product.type}
+                           </Badge>
+                         )}
                       </div>
                     )}
                   </CardHeader>
