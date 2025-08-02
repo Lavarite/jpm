@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Search, AlertCircle, Moon, Sun, ChevronDown, ChevronUp, Filter, FileText, ArrowUpDown } from 'lucide-react';
+import { Loader2, Search, AlertCircle, Moon, Sun, ChevronDown, ChevronUp, Filter, FileText, ArrowUpDown, Download, User } from 'lucide-react';
 import { handleSearch } from '@/helpers/handleSearch';
 import { model, API_BASE_URL } from '@/lib/firebase';
 
@@ -66,6 +67,23 @@ const SearchInterface = () => {
       newExpanded.add(id);
     }
     setExpandedRawText(newExpanded);
+  };
+
+  const handleNameClick = (name: string) => {
+    setQuery(name);
+    handleSubmit();
+  };
+
+  const exportResults = () => {
+    const dataStr = JSON.stringify(parsedResults, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `search-results-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
   };
 
   const filteredResults = parsedResults.filter(result => {
@@ -145,6 +163,7 @@ const SearchInterface = () => {
   };
 
   return (
+    <TooltipProvider>
     <div className={`min-h-screen transition-colors ${darkMode ? 'bg-[#0A3622] text-white' : 'bg-background'}`}>
       {/* Header */}
       <div className={`border-b ${darkMode ? 'border-white/20 bg-white/5' : 'border-border bg-card'}`}>
@@ -293,6 +312,19 @@ const SearchInterface = () => {
                 Search Results ({sortedResults.length}{sortedResults.length !== parsedResults.length && ` of ${parsedResults.length}`})
               </h2>
               <div className="flex items-center gap-4">
+                {/* Export Button */}
+                {parsedResults.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={exportResults}
+                    className={`${darkMode ? 'border-white/20 text-white hover:bg-white/10' : ''}`}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                )}
+                
                 {/* Filter */}
                 <div className="flex items-center gap-2">
                   <Filter className={`w-4 h-4 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`} />
@@ -358,8 +390,14 @@ const SearchInterface = () => {
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <Badge variant={result.type === 'conversation' ? 'default' : 'destructive'} 
-                              className={`${darkMode ? 'border border-white/30' : ''}`}>
+                            <Badge 
+                              variant={result.type === 'conversation' ? 'default' : 'secondary'} 
+                              className={`${
+                                result.type === 'product' 
+                                  ? 'bg-yellow-500 text-black hover:bg-yellow-600 border-yellow-400' 
+                                  : darkMode ? 'border border-white/30' : ''
+                              }`}
+                            >
                               {result.type.charAt(0).toUpperCase() + result.type.slice(1)}
                             </Badge>
                           <span className={`text-sm ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
@@ -380,20 +418,52 @@ const SearchInterface = () => {
                   
                     {/* Participants */}
                     {(result.advisor.name || result.client.name) && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                         {result.advisor.name && (
-                           <div className="text-sm">
-                             <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Advisor:</span>{' '}
-                             <span className={`font-medium ${darkMode ? 'text-white' : 'text-foreground'}`}>{result.advisor.name}</span>
-                           </div>
-                         )}
-                         {result.client.name && (
-                           <div className="text-sm">
-                             <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Client:</span>{' '}
-                             <span className={`font-medium ${darkMode ? 'text-white' : 'text-foreground'}`}>{result.client.name}</span>
-                           </div>
-                         )}
-                      </div>
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                          {result.advisor.name && (
+                            <div className="text-sm">
+                              <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Advisor:</span>{' '}
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      onClick={() => handleNameClick(result.advisor.name!)}
+                                      className={`font-medium underline hover:no-underline transition-all ${
+                                        darkMode ? 'text-white hover:text-white/80' : 'text-foreground hover:text-primary'
+                                      }`}
+                                    >
+                                      {result.advisor.name}
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Click to search for this advisor</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          )}
+                          {result.client.name && (
+                            <div className="text-sm">
+                              <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Client:</span>{' '}
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      onClick={() => handleNameClick(result.client.name!)}
+                                      className={`font-medium underline hover:no-underline transition-all ${
+                                        darkMode ? 'text-white hover:text-white/80' : 'text-foreground hover:text-primary'
+                                      }`}
+                                    >
+                                      {result.client.name}
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Click to search for this client</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          )}
+                       </div>
                     )}
 
                      {/* Product */}
@@ -527,6 +597,7 @@ const SearchInterface = () => {
         )}
       </div>
     </div>
+    </TooltipProvider>
   );
 };
 
