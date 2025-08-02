@@ -220,7 +220,7 @@ const SearchInterface = () => {
                   variant="outline"
                   size="sm"
                   onClick={exportResults}
-                  className={`${darkMode ? 'border-white/20 text-white hover:bg-white/10 hover:text-white' : 'hover:bg-accent'}`}
+                  className={`${darkMode ? 'border-white/30 text-white bg-white/5 hover:bg-white/20 hover:text-white hover:border-white/50' : 'hover:bg-accent'}`}
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Export
@@ -409,17 +409,10 @@ const SearchInterface = () => {
               const isExpanded = expandedSummaries.has(result.id || `result-${index}`);
               const isRawTextExpanded = expandedRawText.has(result.id || `result-${index}`);
               
-              // Check if content overflows by using a temporary element
-              const tempDiv = document.createElement('div');
-              tempDiv.style.cssText = 'position: absolute; visibility: hidden; width: 600px; line-height: 1.625; font-size: 14px;';
-              tempDiv.textContent = result.summary;
-              document.body.appendChild(tempDiv);
-              const fullHeight = tempDiv.scrollHeight;
-              tempDiv.style.height = '5.625rem'; // line-clamp-5 height
-              const clampedHeight = tempDiv.offsetHeight;
-              document.body.removeChild(tempDiv);
-              
-              const isLongSummary = fullHeight > clampedHeight;
+              // Simple line count check for show more/less
+              const lineCount = result.summary.split('\n').length;
+              const wordCount = result.summary.split(' ').length;
+              const isLongSummary = lineCount > 3 || wordCount > 80;
               
               return (
                 <Card key={result.id || index} className={`shadow-elegant hover:shadow-glow transition-shadow ${
