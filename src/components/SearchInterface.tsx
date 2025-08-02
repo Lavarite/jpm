@@ -27,44 +27,7 @@ const SearchInterface = () => {
   const [parsedResults, setParsedResults] = useState<SearchResult[]>([]);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Mock model and API_BASE_URL for demo
-  const mockModel = {
-    generateContentStream: async function* (prompt: string) {
-      // Simulate streaming response
-      const mockResponse = `[
-  {
-    "type": "conversation",
-    "id": "conv_001",
-    "date": "2024-01-15",
-    "advisor": { "id": "adv_123", "name": "Sarah Chen" },
-    "client": { "id": "cli_456", "name": "Robert Johnson" },
-    "product": { "id": "prod_789", "name": "Premium Portfolio", "type": "Investment" },
-    "summary": "Client discussed portfolio rebalancing and risk tolerance assessment",
-    "topics": ["Risk Assessment", "Portfolio Management", "Asset Allocation"],
-    "actions": ["Schedule follow-up", "Prepare risk analysis", "Review allocations"]
-  },
-  {
-    "type": "product",
-    "id": "prod_002",
-    "date": "2024-01-14",
-    "advisor": { "id": "adv_789", "name": "Michael Torres" },
-    "client": { "id": "cli_321", "name": "Emma Davis" },
-    "product": { "id": "prod_456", "name": "Corporate Bond Fund", "type": "Fixed Income" },
-    "summary": "Client inquired about fixed income opportunities and yield expectations",
-    "topics": ["Fixed Income", "Yield Analysis", "Market Outlook"],
-    "actions": ["Send prospectus", "Calculate projections", "Schedule meeting"]
-  }
-]`;
-      
-      const chunks = mockResponse.split('');
-      for (const chunk of chunks) {
-        yield { text: () => chunk };
-        await new Promise(resolve => setTimeout(resolve, 10));
-      }
-    }
-  };
-
-  const API_BASE_URL = "https://mock-api.example.com";
+  const API_BASE_URL = "https://api.jpm.vasylevskyi.net";
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -91,7 +54,7 @@ const SearchInterface = () => {
         }
       },
       setResults,
-      mockModel,
+      null, // model will need to be provided
       API_BASE_URL
     );
   };
