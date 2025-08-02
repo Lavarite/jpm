@@ -271,10 +271,10 @@ const SearchInterface = () => {
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant={result.type === 'conversation' ? 'default' : 'secondary'}>
-                            {result.type}
-                          </Badge>
+                         <div className="flex items-center gap-2">
+                           <Badge variant={result.type === 'conversation' ? 'default' : 'secondary'}>
+                             {result.type.charAt(0).toUpperCase() + result.type.slice(1)}
+                           </Badge>
                           <span className={`text-sm ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
                             {new Date(result.date).toLocaleDateString('en-US', { 
                               year: 'numeric', 
@@ -285,27 +285,27 @@ const SearchInterface = () => {
                             })}
                           </span>
                         </div>
-                        <CardTitle className={`text-lg ${darkMode ? 'text-white' : ''}`}>
-                          {result.type === 'conversation' ? `Conversation ${result.id}` : `Product ${result.id}`}
-                        </CardTitle>
+                         <CardTitle className={`text-lg ${darkMode ? 'text-white' : ''}`}>
+                           {result.type === 'conversation' ? `Conversation` : `Product`} {result.id}
+                         </CardTitle>
                     </div>
                   </div>
                   
                     {/* Participants */}
                     {(result.advisor.name || result.client.name) && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                        {result.advisor.name && (
-                          <div className="text-sm">
-                            <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Advisor:</span>{' '}
-                            <span className="font-medium">{result.advisor.name}</span>
-                          </div>
-                        )}
-                        {result.client.name && (
-                          <div className="text-sm">
-                            <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Client:</span>{' '}
-                            <span className="font-medium">{result.client.name}</span>
-                          </div>
-                        )}
+                         {result.advisor.name && (
+                           <div className="text-sm">
+                             <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Advisor:</span>{' '}
+                             <span className={`font-medium ${darkMode ? 'text-white' : 'text-foreground'}`}>{result.advisor.name}</span>
+                           </div>
+                         )}
+                         {result.client.name && (
+                           <div className="text-sm">
+                             <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Client:</span>{' '}
+                             <span className={`font-medium ${darkMode ? 'text-white' : 'text-foreground'}`}>{result.client.name}</span>
+                           </div>
+                         )}
                       </div>
                     )}
 
@@ -369,21 +369,22 @@ const SearchInterface = () => {
                       </div>
                     )}
                   
-                    {/* Actions */}
-                    {result.actions.length > 0 && (
-                      <div>
-                        <h4 className={`text-sm font-medium mb-2 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
-                          Actions
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {result.actions.map((action, i) => (
-                            <Badge key={i} variant="outline" className="text-xs border-primary text-primary">
-                              {action}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                     {/* Actions */}
+                     {result.actions.length > 0 && (
+                       <div>
+                         <h4 className={`text-sm font-medium mb-2 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
+                           Actions
+                         </h4>
+                         <ul className="space-y-2">
+                           {result.actions.map((action, i) => (
+                             <li key={i} className={`text-sm flex items-start gap-2 ${darkMode ? 'text-white/90' : 'text-foreground'}`}>
+                               <span className="text-primary mt-1">•</span>
+                               <span>{action}</span>
+                             </li>
+                           ))}
+                         </ul>
+                       </div>
+                     )}
                   </CardContent>
                 </Card>
               );

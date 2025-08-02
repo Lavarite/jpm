@@ -64,7 +64,7 @@ Instructions
      "client":     { "id": string|null, "name": string|null },
      "product":    { "id": string|null, "name": string|null, "type": string|null },
      "summary":    string,
-     "topics":     string[],
+     "topics":     string[] (limit to 3-4 most relevant topics),
      "actions":    string[]
    }
 Output nothing except this JSON.
