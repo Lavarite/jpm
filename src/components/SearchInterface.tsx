@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Progress } from '@/components/ui/progress';
-import { Loader2, Search, AlertCircle, Moon, Sun, ChevronDown, ChevronUp } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, Search, AlertCircle, Moon, Sun, ChevronDown, ChevronUp, Filter, FileText } from 'lucide-react';
 import { handleSearch } from '@/helpers/handleSearch';
 import { model, API_BASE_URL } from '@/lib/firebase';
 
@@ -29,6 +29,7 @@ interface SearchResult {
   summary: string;
   topics: string[];
   actions: string[];
+  rawText?: string; // For conversations
 }
 
 const SearchInterface = () => {
@@ -41,7 +42,8 @@ const SearchInterface = () => {
   const [parseError, setParseError] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false);
   const [expandedSummaries, setExpandedSummaries] = useState<Set<string>>(new Set());
-  const [streamProgress, setStreamProgress] = useState(0);
+  const [expandedRawText, setExpandedRawText] = useState<Set<string>>(new Set());
+  const [filter, setFilter] = useState<"all" | "conversation" | "product">("all");
   const abortRef = useRef<AbortController | null>(null);
 
   const toggleSummaryExpansion = (id: string) => {
@@ -54,13 +56,27 @@ const SearchInterface = () => {
     setExpandedSummaries(newExpanded);
   };
 
+  const toggleRawTextExpansion = (id: string) => {
+    const newExpanded = new Set(expandedRawText);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedRawText(newExpanded);
+  };
+
+  const filteredResults = parsedResults.filter(result => {
+    if (filter === "all") return true;
+    return result.type === filter;
+  });
+
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     
     // Reset state
     setParsedResults([]);
     setParseError(null);
-    setStreamProgress(0);
     
     await handleSearch(
       query,
@@ -69,10 +85,6 @@ const SearchInterface = () => {
       setError,
       (streamingSummary) => {
         setSummary(streamingSummary);
-        
-        // Update progress based on streaming content
-        const lines = streamingSummary.split('\n').length;
-        setStreamProgress(Math.min((lines / 20) * 100, 90)); // Estimate progress
         
         // Try to parse complete JSON
         try {
@@ -85,7 +97,6 @@ const SearchInterface = () => {
             const parsed = JSON.parse(cleaned);
             setParsedResults(parsed);
             setParseError(null);
-            setStreamProgress(100);
           }
         } catch (parseErr) {
           // Only set parse error if streaming has finished
@@ -169,18 +180,17 @@ const SearchInterface = () => {
 
       {/* Content */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Loading State with Progress */}
+        {/* Loading State */}
         {loading && (
           <div className="mb-6 space-y-4">
             <Card className={`border-primary/20 ${darkMode ? 'bg-white/5' : 'bg-gradient-subtle'}`}>
               <CardContent className="pt-6">
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-3">
                   <Loader2 className="w-5 h-5 animate-spin text-primary" />
                   <span className={`text-sm ${darkMode ? 'text-white/80' : 'text-muted-foreground'}`}>
                     Searching and analyzing documents...
                   </span>
                 </div>
-                <Progress value={streamProgress} className="h-2" />
               </CardContent>
             </Card>
             
@@ -255,14 +265,30 @@ const SearchInterface = () => {
         {/* Results */}
         {parsedResults.length > 0 && (
           <div className="space-y-6">
-            <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-foreground'}`}>
-              Search Results ({parsedResults.length})
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-foreground'}`}>
+                Search Results ({filteredResults.length}{filteredResults.length !== parsedResults.length && ` of ${parsedResults.length}`})
+              </h2>
+              <div className="flex items-center gap-2">
+                <Filter className={`w-4 h-4 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`} />
+                <Select value={filter} onValueChange={(value: "all" | "conversation" | "product") => setFilter(value)}>
+                  <SelectTrigger className={`w-40 ${darkMode ? 'bg-white/10 border-white/20 text-white' : ''}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className={`${darkMode ? 'bg-gray-800 border-white/20' : ''}`}>
+                    <SelectItem value="all">All Results</SelectItem>
+                    <SelectItem value="conversation">Conversations</SelectItem>
+                    <SelectItem value="product">Products</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             
-            {parsedResults.map((result, index) => {
+            {filteredResults.map((result, index) => {
               const isExpanded = expandedSummaries.has(result.id || `result-${index}`);
+              const isRawTextExpanded = expandedRawText.has(result.id || `result-${index}`);
               const summaryLines = result.summary.split('\n').length;
-              const isLongSummary = summaryLines > 5 || result.summary.length > 400;
+              const isLongSummary = summaryLines > 3 || result.summary.length > 300;
               
               return (
                 <Card key={result.id || index} className={`shadow-elegant hover:shadow-glow transition-shadow ${
@@ -271,10 +297,10 @@ const SearchInterface = () => {
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
-                         <div className="flex items-center gap-2">
-                           <Badge variant={result.type === 'conversation' ? 'default' : 'secondary'}>
-                             {result.type.charAt(0).toUpperCase() + result.type.slice(1)}
-                           </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={result.type === 'conversation' ? 'default' : 'destructive'}>
+                              {result.type.charAt(0).toUpperCase() + result.type.slice(1)}
+                            </Badge>
                           <span className={`text-sm ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
                             {new Date(result.date).toLocaleDateString('en-US', { 
                               year: 'numeric', 
@@ -336,7 +362,7 @@ const SearchInterface = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => toggleSummaryExpansion(result.id || `result-${index}`)}
-                          className={`mt-2 h-8 px-2 ${darkMode ? 'text-white/80 hover:text-white' : ''}`}
+                          className={`mt-2 h-8 px-2 ${darkMode ? 'text-white/80 hover:text-white hover:bg-white/10' : 'hover:bg-muted'}`}
                         >
                           {isExpanded ? (
                             <>
@@ -350,11 +376,38 @@ const SearchInterface = () => {
                             </>
                           )}
                         </Button>
-                      )}
-                    </div>
-                  
-                    {/* Topics */}
-                    {result.topics.length > 0 && (
+                     )}
+                   </div>
+
+                   {/* Raw Text for Conversations */}
+                   {result.type === 'conversation' && result.rawText && (
+                     <div>
+                       <div className="flex items-center justify-between mb-2">
+                         <h4 className={`text-sm font-medium ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
+                           Raw Conversation
+                         </h4>
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => toggleRawTextExpansion(result.id || `result-${index}`)}
+                           className={`h-6 px-2 ${darkMode ? 'text-white/80 hover:text-white hover:bg-white/10' : 'hover:bg-muted'}`}
+                         >
+                           <FileText className="w-3 h-3 mr-1" />
+                           {isRawTextExpanded ? 'Hide' : 'Show'}
+                         </Button>
+                       </div>
+                       {isRawTextExpanded && (
+                         <div className={`p-3 rounded-md text-xs font-mono whitespace-pre-wrap max-h-60 overflow-auto ${
+                           darkMode ? 'bg-black/20 text-white/80' : 'bg-muted text-muted-foreground'
+                         }`}>
+                           {result.rawText}
+                         </div>
+                       )}
+                     </div>
+                   )}
+                   
+                     {/* Topics */}
+                     {result.topics.length > 0 && (
                       <div>
                         <h4 className={`text-sm font-medium mb-2 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
                           Topics
