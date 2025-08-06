@@ -81,31 +81,7 @@ const SearchInterface = () => {
       abortRef,
       setLoading,
       setError,
-      (streamingSummary) => {
-        setSummary(streamingSummary);
-        
-        // Try to parse complete JSON
-        try {
-          // Strip markdown code fences if present
-          const cleaned = streamingSummary
-            .replace(/```json|```/g, "")
-            .trim();
-          
-          if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
-            const parsed = JSON.parse(cleaned);
-            setParsedResults(parsed);
-            setParseError(null);
-          }
-        } catch (parseErr) {
-          // Only set parse error if streaming has finished
-          const cleaned = streamingSummary
-            .replace(/```json|```/g, "")
-            .trim();
-          if ((cleaned.includes('}]') || cleaned.endsWith(']')) && !loading) {
-            setParseError((parseErr as Error).message);
-          }
-        }
-      },
+      setSummary,
       setResults,
       model,
       API_BASE_URL
@@ -162,31 +138,7 @@ const SearchInterface = () => {
       abortRef,
       setLoading,
       setError,
-      (streamingSummary) => {
-        setSummary(streamingSummary);
-        
-        // Try to parse complete JSON
-        try {
-          // Strip markdown code fences if present
-          const cleaned = streamingSummary
-            .replace(/```json|```/g, "")
-            .trim();
-          
-          if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
-            const parsed = JSON.parse(cleaned);
-            setParsedResults(parsed);
-            setParseError(null);
-          }
-        } catch (parseErr) {
-          // Only set parse error if streaming has finished
-          const cleaned = streamingSummary
-            .replace(/```json|```/g, "")
-            .trim();
-          if ((cleaned.includes('}]') || cleaned.endsWith(']')) && !loading) {
-            setParseError((parseErr as Error).message);
-          }
-        }
-      },
+      setSummary,
       setResults,
       model,
       API_BASE_URL

@@ -31,13 +31,13 @@ export const handleSearch = async (
         if (!res.ok) throw new Error(res.statusText);
 
         const data = await res.json();
-        if (!data?.hits?.length) {
+        if (!data?.total || data.total === 0) {
             setSummary("No documents found.");
             return;
         }
 
         // show raw hits in a side-panel if you want
-        const docsJSON = JSON.stringify(data.hits, null, 2);
+        const docsJSON = JSON.stringify(data, null, 2);
         setResults(docsJSON);
 
         /* ─────────────────────────────────────────────────────────
