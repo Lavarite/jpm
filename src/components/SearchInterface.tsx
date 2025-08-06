@@ -367,17 +367,17 @@ const SearchInterface = () => {
           </Card>
         )}
 
-        {/* No Results State */}
+        {/* Processing State */}
         {!loading && summary && parsedResults.length === 0 && !parseError && (
           <Card className={`mb-6 ${darkMode ? 'bg-white/5 border-white/10' : 'border-muted'}`}>
             <CardContent className="pt-6">
               <div className="text-center py-8">
-                <AlertCircle className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`} />
+                <Loader2 className={`w-12 h-12 mx-auto mb-4 animate-spin ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`} />
                 <h3 className={`text-lg font-medium mb-2 ${darkMode ? 'text-white' : 'text-foreground'}`}>
-                  No relevant information found
+                  Processing response...
                 </h3>
                 <p className={`${darkMode ? 'text-white/80' : 'text-muted-foreground'}`}>
-                  Try adjusting your search terms or check the raw response below.
+                  Analyzing search results and generating summary.
                 </p>
               </div>
             </CardContent>
