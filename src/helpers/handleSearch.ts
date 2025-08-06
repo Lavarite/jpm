@@ -6,6 +6,7 @@ export const handleSearch = async (
     setError: (error: string | null) => void,
     setSummary: (summary: string) => void,
     setResults: (results: string) => void,
+    setParsedResults: (results: any[]) => void,
     model: any,
     API_BASE_URL: string,
 ) => {
@@ -76,6 +77,17 @@ Output nothing except this JSON.
         for await (const chunk of stream) {
             raw += typeof chunk.text === "function" ? chunk.text() : chunk;
             setSummary(raw);
+        }
+        
+        // Parse the final JSON response
+        try {
+            const cleaned = raw.replace(/```json|```/g, "").trim();
+            if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
+                const parsed = JSON.parse(cleaned);
+                return parsed; // Return parsed results
+            }
+        } catch (parseErr) {
+            console.error('Failed to parse JSON response:', parseErr);
         }
     } catch (err: any) {
         if (err.name === "AbortError") return;

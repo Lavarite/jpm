@@ -76,16 +76,21 @@ const SearchInterface = () => {
     setParsedResults([]);
     setParseError(null);
     
-    await handleSearch(
+    const parsed = await handleSearch(
       name,
       abortRef,
       setLoading,
       setError,
       setSummary,
       setResults,
+      setParsedResults,
       model,
       API_BASE_URL
     );
+    
+    if (parsed) {
+      setParsedResults(parsed);
+    }
   };
 
   const exportResults = () => {
@@ -133,16 +138,21 @@ const SearchInterface = () => {
     setParsedResults([]);
     setParseError(null);
     
-    await handleSearch(
+    const parsed = await handleSearch(
       query,
       abortRef,
       setLoading,
       setError,
       setSummary,
       setResults,
+      setParsedResults,
       model,
       API_BASE_URL
     );
+    
+    if (parsed) {
+      setParsedResults(parsed);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
