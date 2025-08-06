@@ -57,7 +57,7 @@ Instructions
    · If "product_id" exists ⇒ summarise the product
 2. Use the postgres.lookup data to map IDs to names when available.
 3. Do NOT introduce information that is not present in the input.
-4. CAPITALIZE all topic names (e.g., "ASSET ALLOCATION", "MONETARY POLICY").
+4. Use proper title case for topic names (e.g., "Asset Allocation", "Monetary Policy").
 5. For product amounts, format using the currency specified in the data (e.g., "$1,750,000 USD" if currency is USD).
 6. Return strictly a JSON array where each element has the keys:
    {
@@ -68,7 +68,7 @@ Instructions
      "client":     { "id": string|null, "name": string|null },
      "product":    { "id": string|null, "name": string|null, "type": string|null },
      "summary":    string,
-     "topics":     string[] (limit to 3-4 most relevant topics, CAPITALIZED),
+     "topics":     string[] (limit to 3-4 most relevant topics, use proper title case),
      "actions":    string[]
    }
 Output nothing except this JSON.
