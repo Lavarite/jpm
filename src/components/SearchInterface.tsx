@@ -84,24 +84,38 @@ const SearchInterface = () => {
       (streamingSummary) => {
         setSummary(streamingSummary);
         
-        // Try to parse complete JSON
+        // Try to parse JSON from each chunk for real-time card building
         try {
-          // Strip markdown code fences if present
           const cleaned = streamingSummary
             .replace(/```json|```/g, "")
             .trim();
           
-          if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
-            const parsed = JSON.parse(cleaned);
-            setParsedResults(parsed);
-            setParseError(null);
+          // Try to extract complete JSON objects from the stream
+          if (cleaned.includes('[') && cleaned.includes('{')) {
+            // Look for complete JSON objects within the stream
+            const jsonMatch = cleaned.match(/\[[\s\S]*?\]/);
+            if (jsonMatch) {
+              const parsed = JSON.parse(jsonMatch[0]);
+              setParsedResults(parsed);
+              setParseError(null);
+            } else {
+              // Try to parse partial but valid JSON arrays
+              let partialJson = cleaned;
+              if (partialJson.startsWith('[') && !partialJson.endsWith(']')) {
+                // Clean up incomplete trailing objects
+                const lastCompleteObjectIndex = partialJson.lastIndexOf('}');
+                if (lastCompleteObjectIndex > 0) {
+                  partialJson = partialJson.substring(0, lastCompleteObjectIndex + 1) + ']';
+                  const parsed = JSON.parse(partialJson);
+                  setParsedResults(parsed);
+                  setParseError(null);
+                }
+              }
+            }
           }
         } catch (parseErr) {
-          // Only set parse error if streaming has finished
-          const cleaned = streamingSummary
-            .replace(/```json|```/g, "")
-            .trim();
-          if ((cleaned.includes('}]') || cleaned.endsWith(']')) && !loading) {
+          // Only set parse error if we think streaming has finished
+          if (!loading && streamingSummary.includes('}]')) {
             setParseError((parseErr as Error).message);
           }
         }
@@ -165,24 +179,38 @@ const SearchInterface = () => {
       (streamingSummary) => {
         setSummary(streamingSummary);
         
-        // Try to parse complete JSON
+        // Try to parse JSON from each chunk for real-time card building
         try {
-          // Strip markdown code fences if present
           const cleaned = streamingSummary
             .replace(/```json|```/g, "")
             .trim();
           
-          if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
-            const parsed = JSON.parse(cleaned);
-            setParsedResults(parsed);
-            setParseError(null);
+          // Try to extract complete JSON objects from the stream
+          if (cleaned.includes('[') && cleaned.includes('{')) {
+            // Look for complete JSON objects within the stream
+            const jsonMatch = cleaned.match(/\[[\s\S]*?\]/);
+            if (jsonMatch) {
+              const parsed = JSON.parse(jsonMatch[0]);
+              setParsedResults(parsed);
+              setParseError(null);
+            } else {
+              // Try to parse partial but valid JSON arrays
+              let partialJson = cleaned;
+              if (partialJson.startsWith('[') && !partialJson.endsWith(']')) {
+                // Clean up incomplete trailing objects
+                const lastCompleteObjectIndex = partialJson.lastIndexOf('}');
+                if (lastCompleteObjectIndex > 0) {
+                  partialJson = partialJson.substring(0, lastCompleteObjectIndex + 1) + ']';
+                  const parsed = JSON.parse(partialJson);
+                  setParsedResults(parsed);
+                  setParseError(null);
+                }
+              }
+            }
           }
         } catch (parseErr) {
-          // Only set parse error if streaming has finished
-          const cleaned = streamingSummary
-            .replace(/```json|```/g, "")
-            .trim();
-          if ((cleaned.includes('}]') || cleaned.endsWith(']')) && !loading) {
+          // Only set parse error if we think streaming has finished
+          if (!loading && streamingSummary.includes('}]')) {
             setParseError((parseErr as Error).message);
           }
         }
