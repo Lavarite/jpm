@@ -31,19 +31,13 @@ export const handleSearch = async (
         if (!res.ok) throw new Error(res.statusText);
 
         const data = await res.json();
-        if (!data?.total || data.total === 0) {
+        if (!data?.hits?.length) {
             setSummary("No documents found.");
             return;
         }
 
-        // Combine hits from both postgres and elasticsearch
-        const allHits = [
-            ...(data.postgres?.hits || []),
-            ...(data.elasticsearch?.hits || [])
-        ];
-
         // show raw hits in a side-panel if you want
-        const docsJSON = JSON.stringify(allHits, null, 2);
+        const docsJSON = JSON.stringify(data.hits, null, 2);
         setResults(docsJSON);
 
         /* ─────────────────────────────────────────────────────────

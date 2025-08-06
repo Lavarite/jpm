@@ -13,5 +13,5 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const ai = getAI(firebaseApp, { backend: new GoogleAIBackend() });
-export const model = getGenerativeModel(ai, { model: "gemini-2.5-flash-lite" });
+export const model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
 export const API_BASE_URL = "https://api.jpm.vasylevskyi.net";
