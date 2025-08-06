@@ -503,8 +503,8 @@ const SearchInterface = () => {
                      </div>
                    )}
                    
-                      {/* Topics */}
-                      {result.topics && result.topics.length > 0 && (
+                       {/* Topics - only for conversations */}
+                       {result.type === 'conversation' && result.topics && result.topics.length > 0 && (
                        <div>
                          <h4 className={`text-sm font-medium mb-2 ${darkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
                            Topics
