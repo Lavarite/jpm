@@ -411,9 +411,9 @@ const SearchInterface = () => {
                   </div>
                   
                     {/* Participants */}
-                    {(result.advisor.name || result.client.name) && (
+                    {(result.advisor?.name || result.client?.name) && (
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                          {result.advisor.name && (
+                          {result.advisor?.name && (
                             <div className="text-sm">
                               <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Advisor:</span>{' '}
                               <TooltipProvider>
@@ -435,7 +435,7 @@ const SearchInterface = () => {
                               </TooltipProvider>
                             </div>
                           )}
-                          {result.client.name && (
+                          {result.client?.name && (
                             <div className="text-sm">
                               <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Client:</span>{' '}
                               <TooltipProvider>
@@ -461,7 +461,7 @@ const SearchInterface = () => {
                     )}
 
                      {/* Product */}
-                     {result.product.name && (
+                     {result.product?.name && (
                        <div className="text-sm">
                          <span className={darkMode ? 'text-white/60' : 'text-muted-foreground'}>Product:</span>{' '}
                          <span className={`font-medium ${darkMode ? 'text-white' : 'text-foreground'}`}>{result.product.name}</span>
