@@ -51,11 +51,12 @@ User-provided JSON
 ${docsJSON}
 
 Instructions
-1. For every element in the array:
+1. For every element in the elasticsearch.hits array:
    · If "conversation_id" exists ⇒ summarise the conversation  
-   · If "product_id"      exists ⇒ summarise the product
-2. Do NOT introduce information that is not present in the input.
-3. Return strictly a JSON array where each element has the keys:
+   · If "product_id" exists ⇒ summarise the product
+2. Use the postgres.lookup data to map IDs to names when available.
+3. Do NOT introduce information that is not present in the input.
+4. Return strictly a JSON array where each element has the keys:
    {
      "type":       "conversation" | "product",
      "id":         string,
