@@ -404,9 +404,6 @@ const SearchInterface = () => {
                             })}
                           </span>
                         </div>
-                          <CardTitle className={`text-lg ${darkMode ? 'text-white' : ''}`}>
-                            {result.type === 'conversation' ? 'Conversation' : 'Product'}
-                          </CardTitle>
                     </div>
                   </div>
                   
@@ -475,34 +472,12 @@ const SearchInterface = () => {
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    {/* Summary with Line Clamping */}
-                    <div>
-                      <p className={`leading-relaxed ${darkMode ? 'text-white' : 'text-foreground'} ${
-                        isLongSummary && !isExpanded ? 'line-clamp-5' : ''
-                      }`}>
-                        {result.summary}
-                      </p>
-                      {isLongSummary && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleSummaryExpansion(result.id || `result-${index}`)}
-                          className={`mt-2 h-8 px-2 ${darkMode ? 'text-white/80 hover:text-white hover:bg-white/10' : 'hover:bg-muted'}`}
-                        >
-                          {isExpanded ? (
-                            <>
-                              <ChevronUp className="w-4 h-4 mr-1" />
-                              Show Less
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="w-4 h-4 mr-1" />
-                              Show More
-                            </>
-                          )}
-                        </Button>
-                     )}
-                   </div>
+                     {/* Summary */}
+                     <div>
+                       <p className={`leading-relaxed ${darkMode ? 'text-white' : 'text-foreground'}`}>
+                         {result.summary}
+                       </p>
+                    </div>
 
                    {/* Raw Text for Conversations */}
                    {result.type === 'conversation' && result.rawText && (
